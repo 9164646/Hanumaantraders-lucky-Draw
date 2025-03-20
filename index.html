@@ -265,6 +265,18 @@ function addUser() {
         pointer-events: none;
     }
 
+    /* Countdown Animation */
+    #countdown {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #FFD700;
+        text-shadow: 2px 2px 10px #FFD700;
+        font-size: 5rem;
+        z-index: 1000;
+    }
+
     /* Winner Animation */
     #winnerPopup {
         position: fixed;
@@ -300,6 +312,5 @@ function addUser() {
         60% { transform: translateY(-10px); }
     }
 </style>
-
 </body>
 </html>

@@ -109,7 +109,7 @@
     }
     checkAdmin();
 
-    // Confetti Canvas
+   // Confetti and Fireworks
     const canvas = document.getElementById("confetti-canvas");
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
@@ -130,7 +130,7 @@
         setTimeout(() => {
             confetti.length = 0;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }, 3000);
+        }, 5000);
     }
 
     function animateConfetti() {
@@ -145,30 +145,43 @@
         requestAnimationFrame(animateConfetti);
     }
 
-    // Draw Winner with Confetti and Animation
-    function drawWinner() {
-        if (users.length === 0 || rewards.length === 0) return alert("No users or prizes left!");
+    // Countdown before winner announcement
+    function startCountdown() {
+        let countdown = 5;
+        const countdownElement = document.getElementById("countdown");
+        const countdownNumber = document.getElementById("countdownNumber");
+        const countdownMusic = document.getElementById("countdownMusic");
 
-        const winnerIndex = Math.floor(Math.random() * users.length);
-        const reward = rewards.pop();
-        const winner = users.splice(winnerIndex, 1)[0];
+        countdownElement.classList.remove("hidden");
+        countdownMusic.play();
 
-        winners.push({ ...winner, prize: reward.prize });
-        localStorage.setItem('users', JSON.stringify(users));
-        localStorage.setItem('rewards', JSON.stringify(rewards));
-        localStorage.setItem('winners', JSON.stringify(winners));
+        const countdownInterval = setInterval(() => {
+            countdownNumber.textContent = countdown;
+            countdown--;
 
-        showConfetti();
-        document.getElementById("winnerSound").play();
-
-        const winnerPopup = document.getElementById("winnerPopup");
-        const winnerName = document.getElementById("winnerName");
-        winnerName.textContent = `${winner.name} wins ${reward.prize}!`;
-
-        winnerPopup.classList.remove("hidden");
-        setTimeout(() => winnerPopup.classList.add("hidden"), 5000);
+            if (countdown < 0) {
+                clearInterval(countdownInterval);
+                countdownMusic.pause();
+                announceWinner();
+                countdownElement.classList.add("hidden");
+            }
+        }, 1000);
     }
 
+    // Announce Winner
+    function announceWinner() {
+        const winnerPopup = document.getElementById("winnerPopup");
+        const winnerName = document.getElementById("winnerName");
+        const winnerSound = document.getElementById("winnerSound");
+
+        winnerName.textContent = "🎉 John Doe wins $100! 🎉";
+        winnerPopup.classList.remove("hidden");
+
+        winnerSound.play();
+        showConfetti();
+
+        setTimeout(() => winnerPopup.classList.add("hidden"), 5000);
+        }
     // Random Coupon Generator
 function generateRandomCoupon() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

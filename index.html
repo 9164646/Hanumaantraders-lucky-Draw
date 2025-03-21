@@ -255,6 +255,11 @@
         renderData();
     }
 
+    // Close the winner popup
+function closeWinnerPopup() {
+    document.getElementById('winnerPopup').classList.add('hidden');
+}
+
     // Confetti Animation
     const canvas = document.getElementById("confetti-canvas");
     const ctx = canvas.getContext("2d");

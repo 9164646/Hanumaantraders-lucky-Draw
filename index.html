@@ -63,68 +63,106 @@
         <h2>Admin Login</h2>
         <input type="password" id="adminPassword" placeholder="Enter Password" class="form-control my-3">
         <button class="btn btn-warning" onclick="validateAdmin()">Login</button>
+        <button class="btn btn-info mt-2" onclick="showUserDashboard()">Go to User Dashboard</button>
     </div>
 
-    <!-- Admin Navigation -->
-    <div id="navigation" class="text-center hidden">
-        <button class="btn btn-warning m-2" onclick="showSection('userList')">User List</button>
-        <button class="btn btn-warning m-2" onclick="showSection('addUserSection')">Add User</button>
-        <button class="btn btn-warning m-2" onclick="showSection('rewardList')">Rewards</button>
-        <button class="btn btn-warning m-2" onclick="showSection('winnerList')">Winners</button>
-        <button class="btn btn-warning m-2" onclick="drawWinner()">Draw Winner</button>
-        <button class="btn btn-danger m-2" onclick="resetData()">Reset Data</button>
-        <button class="btn btn-danger m-2" onclick="logoutAdmin()">Logout</button>
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <div class="text-center">
+            <button class="btn btn-warning m-2" onclick="showSection('userList')">User List</button>
+            <button class="btn btn-warning m-2" onclick="showSection('addUserSection')">Add User</button>
+            <button class="btn btn-warning m-2" onclick="showSection('rewardList')">Rewards</button>
+            <button class="btn btn-warning m-2" onclick="showSection('winnerList')">Winners</button>
+            <button class="btn btn-warning m-2" onclick="drawWinner()">Draw Winner</button>
+            <button class="btn btn-danger m-2" onclick="resetData()">Reset Data</button>
+            <button class="btn btn-danger m-2" onclick="logoutAdmin()">Logout</button>
+        </div>
+
+        <!-- Admin Sections -->
+        <div id="userList" class="hidden">
+            <h2>Registered Users</h2>
+            <table class="table table-dark">
+                <thead><tr><th>#</th><th>Name</th><th>Coupon Code</th></tr></thead>
+                <tbody id="userTableBody"></tbody>
+            </table>
+        </div>
+
+        <div id="addUserSection" class="hidden">
+            <h2>Add User</h2>
+            <input type="text" id="userName" placeholder="User Name" class="form-control mb-2">
+            <input type="text" id="userMobile" placeholder="Mobile Number" class="form-control mb-2">
+            <button class="btn btn-warning" onclick="addUser()">Add User</button>
+
+            <hr> <!-- Separator Line -->
+
+            <h4>Upload Excel File</h4>
+            <input type="file" id="excelFile" class="form-control mb-2" accept=".xlsx, .xls">
+            <button class="btn btn-warning" onclick="uploadExcel()">Upload</button>
+
+            <hr> <!-- Separator Line -->
+            <h4>Sample Excel File</h4>
+            <button class="btn btn-info" onclick="downloadSampleExcel()">Download Sample Excel</button>
+        </div>
+
+        <div id="rewardList" class="hidden">
+            <h2>Rewards</h2>
+            <table class="table table-dark">
+                <thead><tr><th>#</th><th>Prize</th></tr></thead>
+                <tbody id="rewardTableBody"></tbody>
+            </table>
+            <input type="text" id="rewardPrize" placeholder="Prize Name" class="form-control my-2">
+            <button class="btn btn-warning" onclick="addReward()">Add Reward</button>
+        </div>
+
+        <div id="winnerList" class="hidden">
+            <h2>Winners</h2>
+            <button class="btn btn-success mb-3" onclick="exportWinners()">Export to CSV</button>
+            <table class="table table-dark">
+                <thead><tr><th>#</th><th>Name</th><th>Coupon</th><th>Prize</th></tr></thead>
+                <tbody id="winnersTableBody"></tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Sections -->
-    <div id="userList" class="hidden">
-        <h2>Registered Users</h2>
-        <table class="table table-dark">
-            <thead><tr><th>#</th><th>Name</th><th>Coupon Code</th></tr></thead>
-            <tbody id="userTableBody"></tbody>
-        </table>
-    </div>
+    <!-- User Dashboard -->
+    <div id="userDashboard" class="hidden">
+        <div class="text-center">
+            <button class="btn btn-info m-2" onclick="showSection('userList')">User List</button>
+            <button class="btn btn-info m-2" onclick="showSection('rewardList')">Rewards</button>
+            <button class="btn btn-info m-2" onclick="showSection('winnerList')">Winners</button>
+            <button class="btn btn-danger m-2" onclick="logoutUser()">Back to Admin Login</button>
+        </div>
 
-    <div id="addUserSection" class="hidden">
-    <h2>Add User</h2>
-    <input type="text" id="userName" placeholder="User Name" class="form-control mb-2">
-    <input type="text" id="userMobile" placeholder="Mobile Number" class="form-control mb-2">
-    <button class="btn btn-warning" onclick="addUser()">Add User</button>
+        <!-- User Sections -->
+        <div id="userList" class="hidden">
+            <h2>Registered Users</h2>
+            <table class="table table-dark">
+                <thead><tr><th>#</th><th>Name</th><th>Coupon Code</th></tr></thead>
+                <tbody id="userTableBodyUser"></tbody>
+            </table>
+        </div>
 
-    <hr> <!-- Separator Line -->
+        <div id="rewardList" class="hidden">
+            <h2>Rewards</h2>
+            <table class="table table-dark">
+                <thead><tr><th>#</th><th>Prize</th></tr></thead>
+                <tbody id="rewardTableBodyUser"></tbody>
+            </table>
+        </div>
 
-    <h4>Upload Excel File</h4>
-    <input type="file" id="excelFile" class="form-control mb-2" accept=".xlsx, .xls">
-    <button class="btn btn-warning" onclick="uploadExcel()">Upload</button>
-
-    <!-- Add Sample Excel Download Button -->
-    <hr> <!-- Separator Line -->
-    <h4>Sample Excel File</h4>
-    <button class="btn btn-info" onclick="downloadSampleExcel()">Download Sample Excel</button>
-    </div>
-
-    <div id="rewardList" class="hidden">
-        <h2>Rewards</h2>
-        <table class="table table-dark">
-            <thead><tr><th>#</th><th>Prize</th></tr></thead>
-            <tbody id="rewardTableBody"></tbody>
-        </table>
-        <input type="text" id="rewardPrize" placeholder="Prize Name" class="form-control my-2">
-        <button class="btn btn-warning" onclick="addReward()">Add Reward</button>
-    </div>
-
-    <div id="winnerList" class="hidden">
-        <h2>Winners</h2>
-        <button class="btn btn-success mb-3" onclick="exportWinners()">Export to CSV</button>
-        <table class="table table-dark">
-            <thead><tr><th>#</th><th>Name</th><th>Coupon</th><th>Prize</th></tr></thead>
-            <tbody id="winnersTableBody"></tbody>
-        </table>
+        <div id="winnerList" class="hidden">
+            <h2>Winners</h2>
+            <table class="table table-dark">
+                <thead><tr><th>#</th><th>Name</th><th>Coupon</th><th>Prize</th></tr></thead>
+                <tbody id="winnersTableBodyUser"></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Winner Animation -->
     <div id="winnerPopup" class="hidden">
         <h1 id="winnerName"></h1>
+        <button class="btn btn-warning mt-3" onclick="closeWinnerPopup()">Back</button>
     </div>
 </div>
 
@@ -144,7 +182,7 @@
     function validateAdmin() {
         if (document.getElementById('adminPassword').value === '1234') {
             sessionStorage.setItem('isAdmin', 'true');
-            location.reload();
+            showAdminDashboard();
         } else alert('Incorrect Password');
     }
 
@@ -153,14 +191,21 @@
         location.reload();
     }
 
-    function checkAdmin() {
-        if (sessionStorage.getItem('isAdmin')) {
-            document.getElementById('adminLogin').classList.add('hidden');
-            document.getElementById('navigation').classList.remove('hidden');
-            renderData();
-        }
+    function showAdminDashboard() {
+        document.getElementById('adminLogin').classList.add('hidden');
+        document.getElementById('adminDashboard').classList.remove('hidden');
+        renderData();
     }
-    checkAdmin();
+
+    function showUserDashboard() {
+        document.getElementById('adminLogin').classList.add('hidden');
+        document.getElementById('userDashboard').classList.remove('hidden');
+        renderUserData();
+    }
+
+    function logoutUser() {
+        location.reload();
+    }
 
     // Show/hide sections
     function showSection(sectionId) {
@@ -170,10 +215,10 @@
         document.getElementById(sectionId).classList.remove('hidden');
     }
 
-    // Random Coupon Generator (Replace MPB with SHT)
+    // Random Coupon Generator
     function generateRandomCoupon() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let coupon = 'SHT-'; // Changed from MPB to SHT
+        let coupon = 'SHT-';
         for (let i = 0; i < 6; i++) {
             coupon += chars.charAt(Math.floor(Math.random() * chars.length));
         }
@@ -229,23 +274,18 @@
 
         reader.readAsArrayBuffer(file);
     }
+
     function downloadSampleExcel() {
-    // Sample data for the Excel file
-    const sampleData = [
-        ["Name", "Mobile"], // Header row
-        ["John Doe", "1234567890"], // Sample row 1
-        ["Jane Smith", "9876543210"], // Sample row 2
-    ];
+        const sampleData = [
+            ["Name", "Mobile"],
+            ["John Doe", "1234567890"],
+            ["Jane Smith", "9876543210"],
+        ];
 
-    // Create a new workbook and worksheet
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.aoa_to_sheet(sampleData);
-
-    // Add the worksheet to the workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
-
-    // Generate Excel file and trigger download
-    XLSX.writeFile(workbook, "Sample_Users.xlsx");
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.aoa_to_sheet(sampleData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+        XLSX.writeFile(workbook, "Sample_Users.xlsx");
     }
 
     // Add reward
@@ -350,7 +390,7 @@
         link.click();
     }
 
-    // Render data
+    // Render data for Admin Dashboard
     function renderData() {
         document.getElementById('userTableBody').innerHTML = users.map((u, i) =>
             `<tr><td>${i + 1}</td><td>${u.name}</td><td>${u.coupon}</td></tr>`
@@ -361,6 +401,21 @@
         ).join('');
 
         document.getElementById('winnersTableBody').innerHTML = winners.map((w, i) =>
+            `<tr><td>${i + 1}</td><td>${w.name}</td><td>${w.coupon}</td><td>${w.prize}</td></tr>`
+        ).join('');
+    }
+
+    // Render data for User Dashboard
+    function renderUserData() {
+        document.getElementById('userTableBodyUser').innerHTML = users.map((u, i) =>
+            `<tr><td>${i + 1}</td><td>${u.name}</td><td>${u.coupon}</td></tr>`
+        ).join('');
+
+        document.getElementById('rewardTableBodyUser').innerHTML = rewards.map((r, i) =>
+            `<tr><td>${i + 1}</td><td>${r.prize}</td></tr>`
+        ).join('');
+
+        document.getElementById('winnersTableBodyUser').innerHTML = winners.map((w, i) =>
             `<tr><td>${i + 1}</td><td>${w.name}</td><td>${w.coupon}</td><td>${w.prize}</td></tr>`
         ).join('');
     }

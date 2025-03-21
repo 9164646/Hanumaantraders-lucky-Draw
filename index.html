@@ -318,19 +318,24 @@
         document.getElementById('winnerPopup').classList.remove('hidden');
         document.getElementById('winnerSound').play();
         showConfetti();
-        function announceWinner(couponNumber, prize) {
-            const message = `Coupon Number ${couponNumber} wins ${prize}`;
-            const utterance = new SpeechSynthesisUtterance(message);
-            utterance.lang = 'en-US';
-            speechSynthesis.speak(utterance);
-        }
 
+        // Announce winner with female voice
+        announceWinner(randomUser.name, reward.prize);
 
         // Remove the winner from the users list
         users = users.filter(u => u.coupon !== randomUser.coupon);
         localStorage.setItem('users', JSON.stringify(users));
 
         renderData();
+    }
+
+    // Announce winner with female voice
+    function announceWinner(winnerName, prize) {
+        const message = `Congratulations! ${winnerName} wins ${prize}`;
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.lang = 'en-US';
+        utterance.voice = speechSynthesis.getVoices().find(voice => voice.name.includes('Female'));
+        speechSynthesis.speak(utterance);
     }
 
     // Close the winner popup

@@ -4,8 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title> Hanumaan traders - Lucky Draw</title>
+    <title>Hanumaan Traders - Lucky Draw</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .hidden { display: none; }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        /* Winner Animation */
+        #winnerPopup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 255, 0.8); /* Blue background */
+            color: #fff;
+            text-shadow: 2px 2px 10px #fff;
+            padding: 20px;
+            border: 3px solid #fff;
+            border-radius: 10px;
+            z-index: 1000;
+            animation: zoomIn 0.5s ease-out;
+        }
+
+        #winnerName {
+            font-size: 2.5rem;
+            text-align: center;
+            animation: bounce 1s infinite;
+        }
+
+        /* Zoom In Animation */
+        @keyframes zoomIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        /* Bounce Animation */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+    </style>
 </head>
 <body style="background: #000; color: #fff; font-family: Arial, sans-serif; padding: 20px;">
 
@@ -44,6 +90,8 @@
         <input type="text" id="userName" placeholder="User Name" class="form-control mb-2">
         <input type="text" id="userMobile" placeholder="Mobile Number" class="form-control mb-2">
         <button class="btn btn-warning" onclick="addUser()">Add User</button>
+        <input type="file" id="excelFile" class="form-control mt-3" accept=".xlsx, .xls">
+        <button class="btn btn-warning mt-2" onclick="uploadExcel()">Upload Excel</button>
     </div>
 
     <div id="rewardList" class="hidden">
@@ -64,11 +112,6 @@
             <tbody id="winnersTableBody"></tbody>
         </table>
     </div>
-</div>
-    <!-- Countdown Animation -->
-    <div id="countdown" class="hidden">
-        <h1 id="countdownNumber"></h1>
-    </div>
 
     <!-- Winner Animation -->
     <div id="winnerPopup" class="hidden">
@@ -76,9 +119,10 @@
     </div>
 </div>
 
-    <!-- Confetti Canvas -->
+<!-- Confetti Canvas -->
 <canvas id="confetti-canvas"></canvas>
-    <!-- Winner Sound -->
+
+<!-- Winner Sound -->
 <audio id="winnerSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
 
 <script>
@@ -109,7 +153,110 @@
     }
     checkAdmin();
 
-   // Confetti and Fireworks
+    // Show/hide sections
+    function showSection(sectionId) {
+        document.querySelectorAll('div[id$="List"], div[id$="Section"]').forEach(section => {
+            section.classList.add('hidden');
+        });
+        document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    // Random Coupon Generator (Replace MPB with SHT)
+    function generateRandomCoupon() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let coupon = 'SHT-'; // Changed from MPB to SHT
+        for (let i = 0; i < 6; i++) {
+            coupon += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return coupon;
+    }
+
+    // Add user with random coupon
+    function addUser() {
+        const name = document.getElementById('userName').value.trim();
+        const mobile = document.getElementById('userMobile').value.trim();
+        if (name && mobile) {
+            const coupon = generateRandomCoupon();
+            users.push({ name, mobile, coupon });
+            localStorage.setItem('users', JSON.stringify(users));
+            renderData();
+            alert(`User Added! Coupon: ${coupon}`);
+        } else {
+            alert("Please fill all fields!");
+        }
+    }
+
+    // Upload Excel File
+    function uploadExcel() {
+        const file = document.getElementById('excelFile').files[0];
+        if (!file) {
+            alert("Please select a file!");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(sheet);
+
+            json.forEach(row => {
+                const name = row['Name'];
+                const mobile = row['Mobile'];
+                if (name && mobile) {
+                    const coupon = generateRandomCoupon();
+                    users.push({ name, mobile, coupon });
+                }
+            });
+
+            localStorage.setItem('users', JSON.stringify(users));
+            renderData();
+            alert("Users added from Excel!");
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // Add reward
+    function addReward() {
+        const prize = document.getElementById('rewardPrize').value.trim();
+        if (prize) {
+            rewards.push({ prize });
+            localStorage.setItem('rewards', JSON.stringify(rewards));
+            renderData();
+            alert("Reward Added!");
+        } else alert("Enter a reward!");
+    }
+
+    // Draw winner in order of prizes
+    function drawWinner() {
+        if (users.length === 0 || rewards.length === 0) {
+            alert("No users or rewards available!");
+            return;
+        }
+
+        const reward = rewards.shift(); // Get the first prize
+        const randomUser = users[Math.floor(Math.random() * users.length)];
+
+        winners.push({ name: randomUser.name, coupon: randomUser.coupon, prize: reward.prize });
+        localStorage.setItem('winners', JSON.stringify(winners));
+        localStorage.setItem('rewards', JSON.stringify(rewards));
+
+        // Display winner
+        document.getElementById('winnerName').textContent = `🎉 ${randomUser.name} wins ${reward.prize}! 🎉`;
+        document.getElementById('winnerPopup').classList.remove('hidden');
+        document.getElementById('winnerSound').play();
+        showConfetti();
+
+        // Remove the winner from the users list
+        users = users.filter(u => u.coupon !== randomUser.coupon);
+        localStorage.setItem('users', JSON.stringify(users));
+
+        renderData();
+    }
+
+    // Confetti Animation
     const canvas = document.getElementById("confetti-canvas");
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
@@ -145,85 +292,60 @@
         requestAnimationFrame(animateConfetti);
     }
 
-    // Countdown before winner announcement
-    function startCountdown() {
-        let countdown = 5;
-        const countdownElement = document.getElementById("countdown");
-        const countdownNumber = document.getElementById("countdownNumber");
-        const countdownMusic = document.getElementById("countdownMusic");
+    // Confetti Animation with Animated Cut
+const canvas = document.getElementById("confetti-canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const confetti = [];
 
-        countdownElement.classList.remove("hidden");
-        countdownMusic.play();
-
-        const countdownInterval = setInterval(() => {
-            countdownNumber.textContent = countdown;
-            countdown--;
-
-            if (countdown < 0) {
-                clearInterval(countdownInterval);
-                countdownMusic.pause();
-                announceWinner();
-                countdownElement.classList.add("hidden");
-            }
-        }, 1000);
+function showConfetti() {
+    for (let i = 0; i < 200; i++) {
+        confetti.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+            size: Math.random() * 8 + 2,
+            speed: Math.random() * 4 + 2,
+        });
     }
+    animateConfetti();
+    setTimeout(() => {
+        confetti.length = 0; // Clear confetti after animation
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }, 8000); // Stop animation after 8 seconds
+}
 
-    // Announce Winner
-    function announceWinner() {
-        const winnerPopup = document.getElementById("winnerPopup");
-        const winnerName = document.getElementById("winnerName");
-        const winnerSound = document.getElementById("winnerSound");
+function animateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        winnerName.textContent = "🎉 John Doe wins $100! 🎉";
-        winnerPopup.classList.remove("hidden");
+    // Animate confetti falling
+    confetti.forEach((c) => {
+        c.y += c.speed; // Move confetti downward
+        c.x += Math.sin(c.y * 0.05) * 2; // Add a slight horizontal sway for realism
 
-        winnerSound.play();
-        showConfetti();
-
-        setTimeout(() => winnerPopup.classList.add("hidden"), 5000);
+        // If confetti is off-screen, reset it to the top
+        if (c.y > canvas.height) {
+            c.y = -c.size; // Reset to the top
+            c.x = Math.random() * canvas.width; // Randomize horizontal position
         }
-    // Random Coupon Generator
-function generateRandomCoupon() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let coupon = 'MPB-';
-    for (let i = 0; i < 6; i++) {
-        coupon += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return coupon;
+
+        ctx.fillStyle = c.color;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // Add a "cut" effect after a delay
+    setTimeout(() => {
+        confetti.forEach((c) => {
+            c.y += 20; // Make confetti fall faster
+            c.x += (Math.random() - 0.5) * 10; // Add random horizontal movement
+        });
+    }, 3000); // Start the cut effect after 3 seconds
+
+    requestAnimationFrame(animateConfetti);
 }
-
-// Add user with random coupon
-function addUser() {
-    const name = document.getElementById('userName').value.trim();
-    const mobile = document.getElementById('userMobile').value.trim();
-    if (name && mobile) {
-        const coupon = generateRandomCoupon();
-        users.push({ name, mobile, coupon });
-        localStorage.setItem('users', JSON.stringify(users));
-        renderData();
-        alert(`User Added! Coupon: ${coupon}`);
-    } else {
-        alert("Please fill all fields!");
-    }
-}
-
-
-    // Add reward
-    function addReward() {
-        const prize = document.getElementById('rewardPrize').value.trim();
-        if (prize) {
-            rewards.push({ prize });
-            localStorage.setItem('rewards', JSON.stringify(rewards));
-            renderData();
-            alert("Reward Added!");
-        } else alert("Enter a reward!");
-    }
-
-    
-
-    
-
-
     // Reset data
     function resetData() {
         if (confirm("Reset all data?")) {
@@ -263,67 +385,8 @@ function addUser() {
     }
 
     renderData();
-
-    
 </script>
-
-<style>
-    .hidden { display: none; }
-
-    /* Confetti Canvas */
-    #confetti-canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        pointer-events: none;
-    }
-
-    /* Countdown Animation */
-    #countdown {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: #FFD700;
-        text-shadow: 2px 2px 10px #FFD700;
-        font-size: 5rem;
-        z-index: 1000;
-    }
-
-    /* Winner Animation */
-    #winnerPopup {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0, 0, 0, 0.8);
-        color: #FFD700;
-        text-shadow: 2px 2px 10px #FFD700;
-        padding: 20px;
-        border: 3px solid #FFD700;
-        border-radius: 10px;
-        z-index: 1000;
-        animation: zoomIn 0.5s ease-out;
-    }
-
-    #winnerName {
-        font-size: 2.5rem;
-        text-align: center;
-        animation: bounce 1s infinite;
-    }
-
-    /* Zoom In Animation */
-    @keyframes zoomIn {
-        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    }
-
-    /* Bounce Animation */
-    @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-20px); }
-        60% { transform: translateY(-10px); }
-    }
-</style>
+<!-- Include XLSX library for Excel file processing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 </body>
 </html>

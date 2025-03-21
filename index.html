@@ -318,6 +318,11 @@
         document.getElementById('winnerPopup').classList.remove('hidden');
         document.getElementById('winnerSound').play();
         showConfetti();
+        // Voice alert
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(winnerMessage);
+    utterance.rate = 1; // Adjust rate if needed
+    synth.speak(utterance);
 
         // Remove the winner from the users list
         users = users.filter(u => u.coupon !== randomUser.coupon);

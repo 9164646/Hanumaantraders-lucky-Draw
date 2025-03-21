@@ -86,16 +86,21 @@
     </div>
 
     <div id="addUserSection" class="hidden">
-        <h2>Add User</h2>
-        <input type="text" id="userName" placeholder="User Name" class="form-control mb-2">
-        <input type="text" id="userMobile" placeholder="Mobile Number" class="form-control mb-2">
-        <button class="btn btn-warning" onclick="addUser()">Add User</button>
+    <h2>Add User</h2>
+    <input type="text" id="userName" placeholder="User Name" class="form-control mb-2">
+    <input type="text" id="userMobile" placeholder="Mobile Number" class="form-control mb-2">
+    <button class="btn btn-warning" onclick="addUser()">Add User</button>
 
-        <hr> <!-- Separator Line -->
+    <hr> <!-- Separator Line -->
 
-        <h4>Upload Excel File</h4>
-        <input type="file" id="excelFile" class="form-control mb-2" accept=".xlsx, .xls">
-        <button class="btn btn-warning" onclick="uploadExcel()">Upload</button>
+    <h4>Upload Excel File</h4>
+    <input type="file" id="excelFile" class="form-control mb-2" accept=".xlsx, .xls">
+    <button class="btn btn-warning" onclick="uploadExcel()">Upload</button>
+
+    <!-- Add Sample Excel Download Button -->
+    <hr> <!-- Separator Line -->
+    <h4>Sample Excel File</h4>
+    <button class="btn btn-info" onclick="downloadSampleExcel()">Download Sample Excel</button>
     </div>
 
     <div id="rewardList" class="hidden">
@@ -223,6 +228,24 @@
         };
 
         reader.readAsArrayBuffer(file);
+    }
+    function downloadSampleExcel() {
+    // Sample data for the Excel file
+    const sampleData = [
+        ["Name", "Mobile"], // Header row
+        ["John Doe", "1234567890"], // Sample row 1
+        ["Jane Smith", "9876543210"], // Sample row 2
+    ];
+
+    // Create a new workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(sampleData);
+
+    // Add the worksheet to the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+
+    // Generate Excel file and trigger download
+    XLSX.writeFile(workbook, "Sample_Users.xlsx");
     }
 
     // Add reward

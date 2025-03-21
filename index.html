@@ -17,17 +17,29 @@
             pointer-events: none;
         }
 
+        /* Countdown Animation */
+        #countdown {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #FFD700;
+            text-shadow: 2px 2px 10px #FFD700;
+            font-size: 5rem;
+            z-index: 1000;
+        }
+
         /* Winner Animation */
         #winnerPopup {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 255, 0.8); /* Blue background */
-            color: #fff;
-            text-shadow: 2px 2px 10px #fff;
+            background: rgba(0, 0, 0, 0.8);
+            color: #FFD700;
+            text-shadow: 2px 2px 10px #FFD700;
             padding: 20px;
-            border: 3px solid #fff;
+            border: 3px solid #FFD700;
             border-radius: 10px;
             z-index: 1000;
             animation: zoomIn 0.5s ease-out;
@@ -90,8 +102,6 @@
         <input type="text" id="userName" placeholder="User Name" class="form-control mb-2">
         <input type="text" id="userMobile" placeholder="Mobile Number" class="form-control mb-2">
         <button class="btn btn-warning" onclick="addUser()">Add User</button>
-        <input type="file" id="excelFile" class="form-control mt-3" accept=".xlsx, .xls">
-        <button class="btn btn-warning mt-2" onclick="uploadExcel()">Upload Excel</button>
     </div>
 
     <div id="rewardList" class="hidden">
@@ -113,6 +123,11 @@
         </table>
     </div>
 
+    <!-- Countdown Animation -->
+    <div id="countdown" class="hidden">
+        <h1 id="countdownNumber"></h1>
+    </div>
+
     <!-- Winner Animation -->
     <div id="winnerPopup" class="hidden">
         <h1 id="winnerName"></h1>
@@ -124,6 +139,9 @@
 
 <!-- Winner Sound -->
 <audio id="winnerSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
+<!-- Countdown Music -->
+<audio id="countdownMusic" src="https://www.soundjay.com/misc/sci-fi-whoosh-1.mp3"></audio>
 
 <script>
     // Data handling
@@ -161,10 +179,10 @@
         document.getElementById(sectionId).classList.remove('hidden');
     }
 
-    // Random Coupon Generator (Replace MPB with SHT)
+    // Random Coupon Generator
     function generateRandomCoupon() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let coupon = 'SHT-'; // Changed from MPB to SHT
+        let coupon = 'MPB-';
         for (let i = 0; i < 6; i++) {
             coupon += chars.charAt(Math.floor(Math.random() * chars.length));
         }
@@ -186,38 +204,6 @@
         }
     }
 
-    // Upload Excel File
-    function uploadExcel() {
-        const file = document.getElementById('excelFile').files[0];
-        if (!file) {
-            alert("Please select a file!");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            const json = XLSX.utils.sheet_to_json(sheet);
-
-            json.forEach(row => {
-                const name = row['Name'];
-                const mobile = row['Mobile'];
-                if (name && mobile) {
-                    const coupon = generateRandomCoupon();
-                    users.push({ name, mobile, coupon });
-                }
-            });
-
-            localStorage.setItem('users', JSON.stringify(users));
-            renderData();
-            alert("Users added from Excel!");
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
     // Add reward
     function addReward() {
         const prize = document.getElementById('rewardPrize').value.trim();
@@ -229,27 +215,54 @@
         } else alert("Enter a reward!");
     }
 
-    // Draw winner in order of prizes
+    // Draw winner
     function drawWinner() {
         if (users.length === 0 || rewards.length === 0) {
             alert("No users or rewards available!");
             return;
         }
 
-        const reward = rewards.shift(); // Get the first prize
-        const randomUser = users[Math.floor(Math.random() * users.length)];
+        startCountdown();
+    }
 
-        winners.push({ name: randomUser.name, coupon: randomUser.coupon, prize: reward.prize });
+    // Countdown before winner announcement
+    function startCountdown() {
+        let countdown = 5;
+        const countdownElement = document.getElementById("countdown");
+        const countdownNumber = document.getElementById("countdownNumber");
+        const countdownMusic = document.getElementById("countdownMusic");
+
+        countdownElement.classList.remove("hidden");
+        countdownMusic.play();
+
+        const countdownInterval = setInterval(() => {
+            countdownNumber.textContent = countdown;
+            countdown--;
+
+            if (countdown < 0) {
+                clearInterval(countdownInterval);
+                countdownMusic.pause();
+                announceWinner();
+                countdownElement.classList.add("hidden");
+            }
+        }, 1000);
+    }
+
+    // Announce Winner
+    function announceWinner() {
+        const randomUser = users[Math.floor(Math.random() * users.length)];
+        const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
+
+        winners.push({ name: randomUser.name, coupon: randomUser.coupon, prize: randomReward.prize });
         localStorage.setItem('winners', JSON.stringify(winners));
-        localStorage.setItem('rewards', JSON.stringify(rewards));
 
         // Display winner
-        document.getElementById('winnerName').textContent = `🎉 ${randomUser.name} wins ${reward.prize}! 🎉`;
+        document.getElementById('winnerName').textContent = `🎉 ${randomUser.name} wins ${randomReward.prize}! 🎉`;
         document.getElementById('winnerPopup').classList.remove('hidden');
         document.getElementById('winnerSound').play();
         showConfetti();
 
-        // Remove the winner from the users list
+        // Remove the winner from the users list (optional)
         users = users.filter(u => u.coupon !== randomUser.coupon);
         localStorage.setItem('users', JSON.stringify(users));
 
@@ -292,60 +305,6 @@
         requestAnimationFrame(animateConfetti);
     }
 
-    // Confetti Animation with Animated Cut
-const canvas = document.getElementById("confetti-canvas");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const confetti = [];
-
-function showConfetti() {
-    for (let i = 0; i < 200; i++) {
-        confetti.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-            size: Math.random() * 8 + 2,
-            speed: Math.random() * 4 + 2,
-        });
-    }
-    animateConfetti();
-    setTimeout(() => {
-        confetti.length = 0; // Clear confetti after animation
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }, 8000); // Stop animation after 8 seconds
-}
-
-function animateConfetti() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Animate confetti falling
-    confetti.forEach((c) => {
-        c.y += c.speed; // Move confetti downward
-        c.x += Math.sin(c.y * 0.05) * 2; // Add a slight horizontal sway for realism
-
-        // If confetti is off-screen, reset it to the top
-        if (c.y > canvas.height) {
-            c.y = -c.size; // Reset to the top
-            c.x = Math.random() * canvas.width; // Randomize horizontal position
-        }
-
-        ctx.fillStyle = c.color;
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    // Add a "cut" effect after a delay
-    setTimeout(() => {
-        confetti.forEach((c) => {
-            c.y += 20; // Make confetti fall faster
-            c.x += (Math.random() - 0.5) * 10; // Add random horizontal movement
-        });
-    }, 3000); // Start the cut effect after 3 seconds
-
-    requestAnimationFrame(animateConfetti);
-}
     // Reset data
     function resetData() {
         if (confirm("Reset all data?")) {
@@ -386,7 +345,5 @@ function animateConfetti() {
 
     renderData();
 </script>
-<!-- Include XLSX library for Excel file processing -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 </body>
 </html>

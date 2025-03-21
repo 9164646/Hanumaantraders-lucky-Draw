@@ -86,14 +86,21 @@
     </div>
 
     <div id="addUserSection" class="hidden">
-        <h2>Add User</h2>
-        <input type="text" id="userName" placeholder="User Name" class="form-control mb-2">
-        <input type="text" id="userMobile" placeholder="Mobile Number" class="form-control mb-2">
-        <button class="btn btn-warning" onclick="addUser()">Add User</button>
-        <input type="file" id="excelFile" class="form-control mt-3" accept=".xlsx, .xls">
-        <button class="btn btn-warning mt-2" onclick="uploadExcel()">Upload Excel</button>
-    </div>
+        
+    <h2>Add User</h2>
+<input type="text" id="userName" placeholder="User Name" class="form-control mb-2">
+<input type="text" id="userMobile" placeholder="Mobile Number" class="form-control mb-2">
+<button class="btn btn-warning" onclick="addUser()">Add User</button>
 
+<hr> <!-- Separator Line -->
+
+<h4>Upload Excel File</h4>
+<input type="file" id="excelFile" class="form-control mb-2" accept=".xlsx, .xls">
+<button class="btn btn-warning" onclick="uploadExcel()">Upload</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+
+ 
     <div id="rewardList" class="hidden">
         <h2>Rewards</h2>
         <table class="table table-dark">
@@ -130,7 +137,7 @@
     let users = JSON.parse(localStorage.getItem('users')) || [];
     let rewards = JSON.parse(localStorage.getItem('rewards')) || [];
     let winners = JSON.parse(localStorage.getItem('winners')) || [];
-
+    
     // Admin auth
     function validateAdmin() {
         if (document.getElementById('adminPassword').value === '1234') {
@@ -186,10 +193,13 @@
         }
     }
 
-    function uploadExcel() {
-    const file = document.getElementById('excelFile').files[0];
+    // Upload Excel and add users
+function uploadExcel() {
+    const fileInput = document.getElementById('excelFile');
+    const file = fileInput.files[0];
+
     if (!file) {
-        alert("Please select a file!");
+        alert('Please select an Excel file.');
         return;
     }
 
@@ -197,25 +207,27 @@
     reader.onload = function (e) {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json(sheet);
 
-        json.forEach(row => {
-            const name = row['Name'];
-            const mobile = row['Mobile'];
-            if (name && mobile) {
+        // Assuming the first sheet contains user data
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+
+        rows.forEach(row => {
+            if (row.Name && row.Mobile) {
                 const coupon = generateRandomCoupon();
-                users.push({ name, mobile, coupon });
+                users.push({ name: row.Name, mobile: row.Mobile, coupon });
             }
         });
 
+        // Save updated users to localStorage
         localStorage.setItem('users', JSON.stringify(users));
         renderData();
-        alert("Users added from Excel!");
+        alert('Users uploaded successfully!');
     };
+
     reader.readAsArrayBuffer(file);
-    }
+}
+
 
     // Add reward
     function addReward() {
